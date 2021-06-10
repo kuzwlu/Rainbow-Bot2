@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- scan:配置文件如果发生改变，将会重新加载，默认值为true -->
+<configuration scan="true" scanPeriod="10 seconds">
+
+    <springProperty name="LOG_HOME" source="logging.file.path"/>
+    <springProperty name="PROJECT_NAME" source="spring.application.name"/>
+
+    <!-- 彩色日志 -->
+    <!-- 彩色日志依赖的渲染类 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+<!--     彩色日志格式   [%-5p] %d{yyyy-MM-dd HH:mm:ss,SSS} method:%l%n%m%n  -->
+    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+<!--    <property name="CONSOLE_LOG_PATTERN"-->
+<!--              value="%yellow(%date{yyyy-MM-dd HH:mm:ss}) |%highlight(%-5level) |%blue(%thread) |%blue(%file:%line) |%green(%logger) |%cyan(%msg%n)"/>-->
+
+    <!--控制台-->
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度 %logger输出日志的logger名 %msg：日志消息，%n是换行符 -->
+            <!--            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} : %msg%n</pattern>-->
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern><!--彩打日志-->
+            <!--解决乱码问题-->
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!--滚动文件-->
+    <appender name="infoFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- ThresholdFilter:临界值过滤器，过滤掉 TRACE 和 DEBUG 级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${PROJECT_NAME}/${PROJECT_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--            <maxFileSize>100MB</maxFileSize>&lt;!&ndash;单个日志文件最大100M，到了这个值，就会再创建一个日志文件，日志文件的名字最后+1&ndash;&gt;-->
+            <maxHistory>30</maxHistory><!--保存最近30天的日志-->
+            <totalSizeCap>100MB</totalSizeCap><!--所有的日志文件最大20G，超过就会删除旧的日志-->
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--滚动文件-->
+    <appender name="errorFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- ThresholdFilter:临界值过滤器，过滤掉 TRACE 和 DEBUG 级别的日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>error</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${PROJECT_NAME}/${PROJECT_NAME}-error-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--            <maxFileSize>100MB</maxFileSize>&lt;!&ndash;单个日志文件最大100M，到了这个值，就会再创建一个日志文件，日志文件的名字最后+1&ndash;&gt;-->
+            <maxHistory>30</maxHistory><!--保存最近30天的日志-->
+            <totalSizeCap>100MB</totalSizeCap><!--所有的日志文件最大20G，超过就会删除旧的日志-->
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%thread] %-5level %logger{36} : %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="rainbow.kuzwlu" level="INFO"/>
+    <logger name="love.forte" level="INFO"/>
+    <root level="INFO">
+        <appender-ref ref="stdout" />
+        <appender-ref ref="infoFile" />
+    </root>
+    <root level="DEBUG">
+        <appender-ref ref="stdout" />
+    </root>
+    <root level="ERROR">
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="errorFile" />
+    </root>
+</configuration>

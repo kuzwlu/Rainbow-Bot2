@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: io.github.karlatemp.mxlib:mxlib-selenium:3.0-dev-14">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../IDEA_setting/Maven/repository/io/github/karlatemp/mxlib/mxlib-selenium/3.0-dev-14/mxlib-selenium-3.0-dev-14.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../../IDEA_setting/Maven/repository/io/github/karlatemp/mxlib/mxlib-selenium/3.0-dev-14/mxlib-selenium-3.0-dev-14-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../IDEA_setting/Maven/repository/io/github/karlatemp/mxlib/mxlib-selenium/3.0-dev-14/mxlib-selenium-3.0-dev-14-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
