@@ -1,6 +1,8 @@
 package rainbow.kuzwlu.util;
 
+import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
@@ -49,7 +51,7 @@ public class Aria2Util extends WebSocketClient {
             System.out.println(client.getReadyState());
 
             // 当服务器连接上时，发送 Json 数据
-            while (!client.getReadyState().equals(READYSTATE.OPEN)) {
+            while (!client.getReadyState().equals(ReadyState.OPEN)) {
                 System.out.println("等待连接...");
             }
             client.send(sendStr);
