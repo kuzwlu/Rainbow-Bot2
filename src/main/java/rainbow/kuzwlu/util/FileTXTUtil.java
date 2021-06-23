@@ -14,7 +14,7 @@ import java.util.List;
 public class FileTXTUtil {
 
     public static List<String> loadFileList(String fileTxtUrl) {
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         BufferedReader brname;
         try {
             brname = new BufferedReader(new InputStreamReader(new FileInputStream(fileTxtUrl),"UTF-8"));

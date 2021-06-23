@@ -22,7 +22,8 @@ simbot:
   core:
     # bot的账号与密码。
     #bots: 23396652:myloveZZW1102
-    bots: 1726539504:myloveZZW1102
+    #bots: 1726539504:myloveZZW1102
+    bots: 1817660149:20001102zzw@@@@
     #扫描包路径
     scan-package: rainbow.kuzwlu.listener
 

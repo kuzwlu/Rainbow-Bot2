@@ -2,17 +2,13 @@ package rainbow.kuzwlu.listener.groupListener;
 
 import catcode.CatCodeUtil;
 import love.forte.common.ioc.annotation.Beans;
+import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.containers.GroupAccountInfo;
+import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.MsgSender;
 import rainbow.kuzwlu.config.UserConfig;
-import rainbow.kuzwlu.core.SpringBootClassLoader;
-
-import java.lang.reflect.Method;
-import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @Author kuzwlu
@@ -37,43 +33,29 @@ public class GroupListener {
             //System.out.println("群聊："+groupMsg.getGroupInfo().getGroupName()+"("+groupMsg.getGroupInfo().getGroupCode()+")\t 发信人："+accountInfo.getAccountNickname()+"("+accountInfo.getAccountCode()+")\t 消息内容："+groupMsg.getMsg());
         }
         if ("967627696".equals(groupCode) || "955877318".equals(groupCode)) {
-            System.out.println("群聊："+groupMsg.getGroupInfo().getGroupName()+"("+groupMsg.getGroupInfo().getGroupCode()+")\t 发信人："+accountInfo.getAccountNickname()+"("+accountInfo.getAccountCode()+")\t 消息内容："+groupMsg.getMsg());
-            if (groupMsg.getMsg().startsWith("发送")) {
-                String code = groupMsg.getMsg().substring(2);
-                SpringBootClassLoader springBootClassLoader = new SpringBootClassLoader((URLClassLoader) Thread.currentThread().getContextClassLoader());
-                String javaName = "Send";
-                String java = "package rainbow.kuzwlu.core;\n" +
-                        "\n" +
-                        "\n" +
-                        "import catcode.CatCodeUtil;\n" +
-                        "import love.forte.simbot.api.message.events.GroupMsg;\n" +
-                        "import love.forte.simbot.api.sender.MsgSender;\n" +
-                        "\n" +
-                        "public class Send {\n" +
-                        "\n" +
-                        "    public void sendMsg(GroupMsg groupMsg, MsgSender sender, CatCodeUtil catCodeUtil){\n" +
-                        "        sender.SENDER.sendGroupMsg(groupMsg.getGroupInfo().getGroupCode(),\""+code+"\");\n" +
-                        "    }\n" +
-                        "\n" +
-                        "}";
-                Map<String,String> javaInfo = new HashMap<>();
-                javaInfo.put("rainbow.kuzwlu.core."+javaName,java);
-                try {
-                    Map<String, byte[]> compile = springBootClassLoader.compile(javaInfo);
-                    Class<?> aClass = springBootClassLoader.loadClass("rainbow.kuzwlu.core." + javaName, compile);
-                    Object o = aClass.newInstance();
-                    Method[] methods = aClass.getMethods();
-                    for (Method method : methods) {
-                        if (method.getName().equals("sendMsg")) {
-                            method.invoke(o, groupMsg, sender,catCodeUtil);
-                        }
-                    }
-                }catch (Exception e){
-                    System.err.println(e);
-                }
-            }
+
         }
         //System.out.println("群聊："+groupMsg.getGroupInfo().getGroupName()+"("+groupMsg.getGroupInfo().getGroupCode()+")\t 发信人："+accountInfo.getAccountNickname()+"("+accountInfo.getAccountCode()+")\t 消息内容："+groupMsg.getText());
+    }
+
+    private boolean flag = false;
+    @OnGroup
+    @Filter(groups = {"955877318"})
+    public void yeLing(GroupMsg groupMsg, MsgSender sender, CatCodeUtil catCodeUtil){
+        GroupInfo groupInfo = groupMsg.getGroupInfo();
+        GroupAccountInfo accountInfo = groupMsg.getAccountInfo();
+        if ("1726539504".equals(accountInfo.getAccountCode())) {
+            if (".".equals(groupMsg.getText())) {
+                flag = true;
+            }else if ("。".equals(groupMsg.getText())) {
+                flag = false;
+            }
+        }
+        if ("3501891984".equals(accountInfo.getAccountCode())) {
+            if (flag) {
+                sender.SENDER.sendGroupMsg(groupInfo.getGroupCode(), groupMsg.getMsgContent());
+            }
+        }
     }
 
 }

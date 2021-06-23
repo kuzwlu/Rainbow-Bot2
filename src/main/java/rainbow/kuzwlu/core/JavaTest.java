@@ -70,7 +70,6 @@ public class JavaTest {
         ReflectUtil.invoke(o,"main");
         Method[] method = ReflectUtil.getMethods(aClass);
         Arrays.stream(method).forEach(method1 -> {
-            //有用，把aClass注入bean，后可以Filter
             Filter filter = method1.getAnnotation(Filter.class);
             if (filter != null) {
 

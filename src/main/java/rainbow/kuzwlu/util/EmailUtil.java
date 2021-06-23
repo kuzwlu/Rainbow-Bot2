@@ -16,11 +16,11 @@ import java.util.Properties;
 
 public class EmailUtil {
 
-    private String email_username ;
-    private String myEmailAccount ;
-    private String myEmailPassword ;
-    private String myEmailSMTPHost ;
-    private String port ;
+    private final String email_username ;
+    private final String myEmailAccount ;
+    private final String myEmailPassword ;
+    private final String myEmailSMTPHost ;
+    private final String port ;
 
     public EmailUtil(String email_username, String myEmailAccount, String myEmailPassword, String myEmailSMTPHost, String port) {
         this.email_username = email_username;
@@ -89,8 +89,7 @@ public class EmailUtil {
      * @param session 和服务器交互的会话
      * @param sendMail 发件人邮箱
      * @param receiveMail 收件人邮箱
-     * @return
-     * @throws Exception
+     * @return MimeMessage
      */
 
     public MimeMessage createMimeMessage(Session session,String title,String content, String sendMail, String receiveMail) throws Exception {
