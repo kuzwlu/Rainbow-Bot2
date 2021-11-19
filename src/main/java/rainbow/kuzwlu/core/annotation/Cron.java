@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Cron {
     String schedulingPattern();
-    String title() default "";
+    String jobName() default "";
     String description() default "";
 }
