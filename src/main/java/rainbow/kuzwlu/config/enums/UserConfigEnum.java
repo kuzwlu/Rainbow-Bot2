@@ -1,4 +1,4 @@
-package rainbow.kuzwlu.enums;
+package rainbow.kuzwlu.config.enums;
 
 /**
  * @Author kuzwlu
@@ -9,11 +9,8 @@ package rainbow.kuzwlu.enums;
 
 public enum UserConfigEnum {
 
-    MASTER("rainbow.kuzwlu.master"),
-    LOG_DIR("rainbow.kuzwlu.logDir"),
-    JAVA_DIR("rainbow.kuzwlu.javaDir"),
-    BLACK_LIST("rainbow.kuzwlu.blackList"),
-    WRITE_LIST("rainbow.kuzwlu.writeList");
+    ADMIN_LIST("rainbow.kuzwlu.bot.admin-list"),
+    START_FLAG("rainbow.kuzwlu.bot.start-flag");
 
     private String value;
 
