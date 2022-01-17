@@ -9,14 +9,14 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
-import rainbow.kuzwlu.core.annotation.Cron;
+import rainbow.kuzwlu.core.plugins.annotation.Cron;
 
 @Component
 @Aspect
 @Slf4j
 public class CornAspect {
 
-    @Pointcut(value = "@annotation(rainbow.kuzwlu.core.annotation.Cron)")
+    @Pointcut(value = "@annotation(rainbow.kuzwlu.core.plugins.annotation.Cron)")
     public void pointCut(){
 
     }
