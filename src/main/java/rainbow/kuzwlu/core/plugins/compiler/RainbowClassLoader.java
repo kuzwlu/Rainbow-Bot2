@@ -1,18 +1,16 @@
-package rainbow.kuzwlu.core;
-
+package rainbow.kuzwlu.core.plugins.compiler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.loader.LaunchedURLClassLoader;
 import rainbow.kuzwlu.exception.CompileException;
+import rainbow.kuzwlu.utils.PathUtil;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.tools.*;
 import java.io.*;
-import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.*;
 import java.nio.CharBuffer;
 import java.util.*;
 import java.util.jar.JarEntry;
@@ -28,7 +26,7 @@ import java.util.jar.JarEntry;
  * 5.通过Map结构存储所有需要编译的java（一次性编译所有）
  */
 @Slf4j
-public class SpringBootClassLoader {
+public class RainbowClassLoader {
 
     static class CustomJavaFileObject implements JavaFileObject {
         private String binaryName;
@@ -154,7 +152,7 @@ public class SpringBootClassLoader {
         private StandardJavaFileManager standardJavaFileManager;
         final Map<String, byte[]> classBytes = new HashMap<>();
 
-        SpringBootJarFileManager(StandardJavaFileManager standardJavaFileManager, URLClassLoader systemLoader) {
+        SpringBootJarFileManager(StandardJavaFileManager standardJavaFileManager, URLClassLoader systemLoader)  {
             this.classLoader = new URLClassLoader(systemLoader.getURLs(), systemLoader);
             this.standardJavaFileManager = standardJavaFileManager;
         }
@@ -244,26 +242,26 @@ public class SpringBootClassLoader {
         }
 
         @Override
-        public JavaFileObject getJavaFileForInput(Location location, String className, JavaFileObject.Kind kind) throws IOException {
+        public JavaFileObject getJavaFileForInput(Location location, String className, JavaFileObject.Kind kind) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public FileObject getFileForInput(Location location, String packageName, String relativeName) throws IOException {
+        public FileObject getFileForInput(Location location, String packageName, String relativeName) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) throws IOException {
+        public FileObject getFileForOutput(Location location, String packageName, String relativeName, FileObject sibling) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void flush() throws IOException {
+        public void flush() {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
             classBytes.clear();
         }
 
@@ -273,7 +271,7 @@ public class SpringBootClassLoader {
         }
 
         public Map<String, byte[]> getClassBytes() {
-            return new HashMap<String, byte[]>(this.classBytes);
+            return new HashMap<>(this.classBytes);
         }
 
         @Override
@@ -287,27 +285,7 @@ public class SpringBootClassLoader {
         }
     }
 
-    private static class MemoryClassLoader extends LaunchedURLClassLoader {
-        Map<String, byte[]> classBytes = new HashMap<>();
-
-        public MemoryClassLoader(Map<String, byte[]> classBytes, ClassLoader classLoader) {
-            super(new URL[0], classLoader);
-            this.classBytes.putAll(classBytes);
-        }
-
-        @Override
-        protected Class<?> findClass(String name) throws ClassNotFoundException {
-            System.out.println("findClass: " + name);
-            byte[] buf = classBytes.get(name);
-            if (buf == null) {
-                return super.findClass(name);
-            }
-            classBytes.remove(name);
-            return defineClass(name, buf, 0, buf.length);
-        }
-    }
-
-    public Class<?> loadClass(String name, Map<String, byte[]> classBytes) throws Exception {
+    public Class<?> loadClass(String name, Map<String, byte[]> classBytes) {
         ClassLoader loader = new ClassLoader() {
             @Override
             public Class<?> loadClass(String name) throws ClassNotFoundException {
@@ -321,42 +299,66 @@ public class SpringBootClassLoader {
                 return r;
             }
         };
-        return loader.loadClass(name);
+        try {
+            return loader.loadClass(name);
+        } catch (ClassNotFoundException e) {
+            throw new CompileException(e);
+        }
     }
 
     private URLClassLoader systemClassLoader;
-    public SpringBootClassLoader(URLClassLoader loader) {
+    public RainbowClassLoader(URLClassLoader loader) {
         systemClassLoader = loader;
     }
 
-    public Map<String, byte[]> compile(Map<String,String> javaInfo) throws Exception {
+    public Map<String, byte[]> compile(Map<String,String> javaInfo,File libPath)  {
+        StringBuffer lib = new StringBuffer();
+        if (libPath != null || libPath.exists()){
+            try {
+                Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
+                addURL.setAccessible(true);
+                for (File file : libPath.listFiles()) {
+                    if (PathUtil.isHiddenFile(file)) continue;
+                    lib.append(file.getPath()).append(PathUtil.isWindows? ";" :":");
+                    addURL.invoke(systemClassLoader, new Object[] {file.toURI().toURL() });
+                }
+            } catch (NoSuchMethodException | MalformedURLException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
+        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         StandardJavaFileManager stdManager = compiler.getStandardFileManager(diagnostics, null, null);
         SpringBootJarFileManager springBootJarFileManager = new SpringBootJarFileManager(stdManager, systemClassLoader);
         List<JavaFileObject> javaFileObjectList = new ArrayList<>();
+
         javaInfo.forEach((javaName,java) ->{
             JavaFileObject javaFileObject = new MemoryInputJavaFileObject(javaName, java);
             javaFileObjectList.add(javaFileObject);
         });
         List<String> options = new ArrayList<>();
-        options.addAll(Arrays.asList("-classpath", System.getProperty("java.class.path"),
+        options.addAll(Arrays.asList(
+                "-classpath", lib+System.getProperty("java.class.path"),
                 "-bootclasspath", System.getProperty("sun.boot.class.path"),
                 "-extdirs", System.getProperty("java.ext.dirs"),
                 "-encoding","utf-8",
                 "-Xlint:all",
-                "-XDuseUnsharedTable"));
+                "-XDuseUnsharedTable "
+        ));
         JavaCompiler.CompilationTask task = compiler.getTask(null, springBootJarFileManager, diagnostics, options, null, javaFileObjectList);
         Boolean compileRet= task.call();
 
         if (compileRet == null || (!compileRet.booleanValue())) {
             diagnostics.getDiagnostics().forEach(e ->{
-                log.error(e.toString());
-                throw new CompileException(e.toString());
+                log.debug(e.toString());
+                if (e.getKind().name() == "ERROR" || e.getKind().name().equals("ERROR")) {
+                    throw new CompileException(e.toString());
+                }
             });
         }
         for (String key : springBootJarFileManager.getClassBytes().keySet()) {
             log.debug("class: " + key + " length: " + Integer.valueOf(springBootJarFileManager.getClassBytes().get(key).length).toString());
+            log.debug("class["+key+"]\t加载依赖Jar：\n"+lib);
         }
         return springBootJarFileManager.getClassBytes();
     }

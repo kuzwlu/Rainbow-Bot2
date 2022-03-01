@@ -15,7 +15,7 @@
     <description>Demo project for Spring Boot</description>
     <properties>
         <java.version>1.8</java.version>
-        <simbot.version>2.0.8</simbot.version>
+        <simbot.version>2.3.7</simbot.version>
         <httpclient.version>4.5.5</httpclient.version>
         <commons-io.version>2.6</commons-io.version>
         <javax.mail.version>1.6.2</javax.mail.version>
@@ -25,6 +25,8 @@
         <javassist.version>3.27.0-GA</javassist.version>
         <mirai-login-solver-selenium.version>1.0-dev-16</mirai-login-solver-selenium.version>
         <hutool.version>5.6.6</hutool.version>
+        <mysql.version>8.0.21</mysql.version>
+        <rainbow.kuzwlu.utils.version>1.7</rainbow.kuzwlu.utils.version>
     </properties>
 
     <dependencyManagement>
@@ -47,16 +49,20 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-loader</artifactId>
+            <artifactId>spring-boot-starter-quartz</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+        <!-- log4j漏洞 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.15.0</version>
         </dependency>
 
-<!--        <dependency>-->
+
+
+        <!--        <dependency>-->
 <!--            <groupId>org.springframework.boot</groupId>-->
 <!--            <artifactId>spring-boot-starter-web</artifactId>-->
 <!--        </dependency>-->
@@ -137,20 +143,24 @@
             <version>${commons-io.version}</version>
         </dependency>
 
-        <!-- 工具包 -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-
         <!--  mysql驱动 -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.21</version>
+            <version>${mysql.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>rainbow.kuzwlu</groupId>
+            <artifactId>utils-boot-starter</artifactId>
+            <version>${rainbow.kuzwlu.utils.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20200518</version>
+        </dependency>
     </dependencies>
 
     <!-- maven中需要配置 jcenter 仓库地址 -->
@@ -165,16 +175,75 @@
             <name>misc</name>
             <url>https://dl.bintray.com/karlatemp/misc</url>
         </repository>
+
     </repositories>
 
+
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.4.2</version>
-            </plugin>
-        </plugins>
+    <plugins>
+        <!--<plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>-->
+        <!--将 jar包打在外部
+        -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <!-- 添加依赖jar路径 -->
+                        <addClasspath>true</addClasspath>
+                        <!-- 入口程序 -->
+                        <mainClass>rainbow.kuzwlu.RainbowApplication</mainClass>
+                        <classpathPrefix>lib/</classpathPrefix>
+                    </manifest>
+                </archive>
+            </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <fork>true</fork> <!-- hot deploy -->
+                <includes> <!-- exclude third part jar files -->
+                    <include>
+                        <groupId>nothing</groupId>
+                        <artifactId>nothing</artifactId>
+                    </include>
+                </includes>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <!--将依赖的jar copy到lib下-->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>copy-dependencies</id>
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>copy-dependencies</goal>
+                    </goals>
+                    <configuration>
+                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        <overWriteReleases>false</overWriteReleases>
+                        <overWriteSnapshots>false</overWriteSnapshots>
+                        <overWriteIfNewer>true</overWriteIfNewer>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
     </build>
+
 
 </project>

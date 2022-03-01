@@ -1,11 +1,36 @@
 rainbow:
   kuzwlu:
     utils:
-      logDir: log
-      writeList:
-      blackList:
-    master: 1726539504
+      log-dir: log
+      #all black-list write-list
+      bw-flag: black-list
+      write-list:
+        -java.lang
+        -java.util
+        -java.text
+        -java.net
+        -[Ljava.lang ()
+        -[D (double[])
+        -[F (float[])
+        -[I (int[])
+        -[J (long[])
+        -[C (char[])
+        -[B (byte[])
+        -[Z (boolean[])
+        -love.forte
+        -rainbow.kuzwlu.
 
+      black-list:
+        #-java.lang.Thread
+        -java.lang.reflect
+        #-java.net.URL
+        #-java.io.File
+
+    bot:
+      admin-list:
+        #-23396652
+        -1726539504
+      start-flag: true
 
 #项目名称
 spring:
@@ -24,7 +49,7 @@ simbot:
     # bot的账号与密码。
     bot-resource-type: BOTH
     #扫描包路径
-    scan-package: rainbow.kuzwlu.listener
+    scan-package: rainbow.kuzwlu
   component:
     mirai:
       # mirai心跳周期. 过长会导致被服务器断开连接. 单位毫秒。

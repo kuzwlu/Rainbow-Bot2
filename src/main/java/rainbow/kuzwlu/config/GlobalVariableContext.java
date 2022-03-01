@@ -1,6 +1,7 @@
-package rainbow.kuzwlu.config.init;
+package rainbow.kuzwlu.config;
 
 import org.springframework.stereotype.Component;
+import rainbow.kuzwlu.core.plugins.PluginsRuntime;
 import rainbow.kuzwlu.utils.*;
 import rainbow.kuzwlu.utils.quartz.QuartzUtil;
 
@@ -26,6 +27,8 @@ public class GlobalVariableContext {
     private SpringBeanUtil springBeanUtil;
 
     private QuartzUtil quartzUtil;
+
+    private PluginsRuntime pluginsRuntime;
 
     public HttpUtil getHttpUtil() {
         return httpUtil;
@@ -73,5 +76,13 @@ public class GlobalVariableContext {
 
     protected void setQuartzUtil(QuartzUtil quartzUtil) {
         this.quartzUtil = quartzUtil;
+    }
+
+    public PluginsRuntime getPluginsRuntime() {
+        return pluginsRuntime;
+    }
+
+    protected void setPluginsRuntime(PluginsRuntime pluginsRuntime) {
+        this.pluginsRuntime = pluginsRuntime;
     }
 }

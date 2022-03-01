@@ -1,10 +1,25 @@
 package rainbow.kuzwlu;
 
+import catcode.CatCodeUtil;
 import love.forte.simbot.annotation.SimbotApplication;
 import love.forte.simbot.annotation.SimbotResource;
+import love.forte.simbot.bot.BotManager;
 import love.forte.simbot.core.SimbotApp;
+import love.forte.simbot.core.SimbotContext;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import rainbow.kuzwlu.config.UserConfig;
+import rainbow.kuzwlu.core.plugins.annotation.Cron;
+import rainbow.kuzwlu.core.plugins.compiler.interfaces.ScriptCompile;
+import rainbow.kuzwlu.core.plugins.compiler.java.InvokeObject;
+import rainbow.kuzwlu.core.plugins.PluginsRuntime;
+import rainbow.kuzwlu.pluginsBot.RainbowBotManager;
+import rainbow.kuzwlu.pluginsBot.interfaces.ListenPlugins;
+import rainbow.kuzwlu.utils.ThreadUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author kuzwlu
@@ -13,13 +28,22 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Version 1.0
  */
 
-@SpringBootApplication
 @SimbotApplication(@SimbotResource(value = "application.yml"))
+@ComponentScan("rainbow.kuzwlu")
 public class RainbowApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(RainbowApplication.class, args);
-        SimbotApp.run(new RainbowApplication(),args);
+        SimbotContext context = SimbotApp.run(new RainbowApplication(), args);
+
+        Map<Class,Object> invokeParams = new HashMap<>();
+        invokeParams.put(RainbowBotManager.class, new RainbowBotManager(context.getBotManager()));
+        invokeParams.put(CatCodeUtil.class,CatCodeUtil.getInstance());
+        invokeParams.put(UserConfig.class,UserConfig.getInstance());
+
+        InvokeObject.invokeAllByMethodName("init", ListenPlugins.class, invokeParams);
+        //执行定时任务
+        InvokeObject.invokeAllByAnnotation(Cron.class, invokeParams, true);
     }
 
 }
