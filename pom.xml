@@ -16,8 +16,8 @@
     <properties>
         <java.version>1.8</java.version>
         <simbot.version>2.3.7</simbot.version>
-        <httpclient.version>4.5.5</httpclient.version>
-        <commons-io.version>2.6</commons-io.version>
+        <httpclient.version>4.5.13</httpclient.version>
+        <commons-io.version>2.7</commons-io.version>
         <javax.mail.version>1.6.2</javax.mail.version>
         <Java-WebSocket.version>1.5.0</Java-WebSocket.version>
         <htmlunit.version>2.43.0</htmlunit.version>
@@ -27,6 +27,7 @@
         <hutool.version>5.6.6</hutool.version>
         <mysql.version>8.0.21</mysql.version>
         <rainbow.kuzwlu.utils.version>1.7</rainbow.kuzwlu.utils.version>
+        <log4j-core.version>2.17.1</log4j-core.version>
     </properties>
 
     <dependencyManagement>
@@ -57,7 +58,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.15.0</version>
+            <version>${log4j-core.version}</version>
         </dependency>
 
 
