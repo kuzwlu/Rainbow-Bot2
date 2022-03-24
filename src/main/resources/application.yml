@@ -3,12 +3,10 @@ rainbow:
     utils:
       log-dir: log
       #all black-list write-list
-      bw-flag: black-list
+      bw-flag: all #black-list
       write-list:
         -java.lang
         -java.util
-        -java.text
-        -java.net
         -[Ljava.lang ()
         -[D (double[])
         -[F (float[])
@@ -17,14 +15,36 @@ rainbow:
         -[C (char[])
         -[B (byte[])
         -[Z (boolean[])
-        -love.forte
-        -rainbow.kuzwlu.
+        -love.forte.common
+        -love.forte.simbot
+        -catcode
+        -rainbow.kuzwlu.core.plugins.utils
+        -rainbow.kuzwlu.pluginsBot
+        -rainbow.kuzwlu.core.plugins.annotation
+        -rainbow.kuzwlu.core.annotation.OnNudged
+        -rainbow.kuzwlu.utils
+        -rainbow.kuzwlu.config
+        -java.io.PrintStream
+        -System.out
+        -java.time
+        -org.json.JSONArray
+        -org.json.JSONObject
 
       black-list:
-        #-java.lang.Thread
+        -java.lang.Thread
+        -java.lang.Runtime
         -java.lang.reflect
-        #-java.net.URL
-        #-java.io.File
+        -java.net.URL
+        -java.io.File
+        -java.io.FileWriter
+        -java.io.RandomAccessFile
+        -rainbow.kuzwlu.core.plugins.compiler
+        -rainbow.kuzwlu.core.plugins.enums
+        -rainbow.kuzwlu.core.plugins.tool
+        -rainbow.kuzwlu.utils.config
+        -rainbow.kuzwlu.utils.exception
+        -rainbow.kuzwlu.utils.config
+        -System
 
     bot:
       admin-list:

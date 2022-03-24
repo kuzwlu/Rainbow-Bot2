@@ -62,7 +62,7 @@
         </encoder>
     </appender>
     <logger name="org.springframework" level="INFO"/>
-    <logger name="rainbow.kuzwlu" level="INFO"/>
+    <logger name="rainbow.kuzwlu" level="DEBUG"/>
     <logger name="love.forte" level="INFO"/>
     <root level="INFO">
         <appender-ref ref="stdout" />
