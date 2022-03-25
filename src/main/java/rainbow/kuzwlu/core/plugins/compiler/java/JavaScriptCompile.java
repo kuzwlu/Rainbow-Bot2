@@ -13,13 +13,15 @@ import rainbow.kuzwlu.utils.PathUtil;
 import java.io.File;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class JavaScriptCompile implements ScriptCompile {
 
     private static final String PLUGINS="plugins.";
 
-    private final List<NObject> classAClazzList = new ArrayList<>() ;
+    private final List<NObject> classAClazzList = new CopyOnWriteArrayList<>() ;
 
     public List<NObject> getClassAClazzList() {
         return classAClazzList;
@@ -46,7 +48,8 @@ public class JavaScriptCompile implements ScriptCompile {
         Map<String, byte[]> compile;
         try{
             if (javaInfo.isEmpty()) {return;}
-             compile = classLoader.compile(javaInfo,new File(PathUtil.getInstance(JavaScriptCompile.class).getPath("plugins/java/"+pluginsName+"/lib/")));
+             //compile = classLoader.compile(javaInfo,new File(PathUtil.getInstance(JavaScriptCompile.class).getPath("plugins/java/"+pluginsName+"/lib/")));
+            compile = classLoader.compile(javaInfo,null);
             JavassistUtil.getInstance().safetyCheck(compile);
         }catch (Exception e){
             logger.error("插件类型：{{}}\t插件名[{}]-> 编译出错！\n{}",getPluginsType(),pluginsName,e.getMessage());
@@ -57,15 +60,25 @@ public class JavaScriptCompile implements ScriptCompile {
             if (javaName.contains("$")) continue;
             try {
                 Object o = aClass.newInstance();
+                //必须实现ListenPlugins
+                if (o.getClass().getGenericInterfaces().length == 0){
+                    //throw new CompileException("插件类型：{"+getPluginsType()+"}\t插件名["+obj.getClass().getSimpleName()+"]->  插件未实现ListenPlugins！");
+                    logger.error("插件类型：{"+getPluginsType()+"}\t插件名["+o.getClass().getSimpleName()+"]->  插件未实现ListenPlugins！");
+                    return;
+                }
                 //防止同一插件实现多个ListenPlugins
                 count += Arrays.stream(o.getClass().getGenericInterfaces()).filter(interfaces -> interfaces.equals(ListenPlugins.class)).count();
                 objectList.add(o);
             } catch (Exception e) {
-                throw new CompileException("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]-> 类："+aClass.getName()+" 实例化错误！",e);
+                //throw new CompileException("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]-> 类："+aClass.getName()+" 实例化错误！",e);
+                logger.error("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]-> 类："+aClass.getName()+" 实例化错误！",e);
+                return;
             }
         }
         if (count != 1 && count > 0) {
-            throw new CompileException("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]->  同一插件请勿实现多个ListenPlugins！");
+            //throw new CompileException("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]->  同一插件请勿实现多个ListenPlugins！");
+            logger.error("插件类型：{"+getPluginsType()+"}\t插件名["+pluginsName+"]->  同一插件请勿实现多个ListenPlugins！");
+            return;
         }
         classAClazz.setObjList(objectList);
         classAClazz.setRainbowPlugins(getPluginsDevelopers(objectList));
@@ -104,11 +117,19 @@ public class JavaScriptCompile implements ScriptCompile {
             classAClazzList.remove(nObject.get());
             removePluginsRunList(pluginsName);
         }
+        //sortClassAClazzList();
     }
 
     @Override
     public void init(String pluginsName) {
         compile(pluginsName);
+        //sortClassAClazzList();
+    }
+
+    public void sortClassAClazzList(){
+        List<NObject> collect =classAClazzList.stream().filter(nObject -> null != nObject.getRainbowPlugins().priority()).sorted(Comparator.comparing(nObject -> nObject.getRainbowPlugins().priority().value())).collect(Collectors.toList());
+        classAClazzList.clear();
+        classAClazzList.addAll(collect);
     }
 
 }

@@ -10,18 +10,16 @@ import rainbow.kuzwlu.core.plugins.compiler.pojo.NObject;
 import rainbow.kuzwlu.core.plugins.enums.PluginsType;
 import rainbow.kuzwlu.core.plugins.utils.PluginsFile;
 import rainbow.kuzwlu.utils.PathUtil;
+import rainbow.kuzwlu.utils.ThreadUtil;
 import rainbow.kuzwlu.utils.exception.QuartzException;
 import rainbow.kuzwlu.utils.quartz.QuartzUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class InvokeObject {
+public class  InvokeObject {
 
     private static final JavaScriptCompile javaScriptCompile = (JavaScriptCompile) PluginsRuntime.getRuntime().getScriptCompile(PluginsType.JAVA);
     
@@ -69,12 +67,12 @@ public class InvokeObject {
                 }
             }
             pluginsFile = (PluginsFile) aClass.newInstance();
-            for (Field declaredField : aClass.getDeclaredFields()) {
-                if (declaredField.getName().equals("PATH")){
-                    declaredField.setAccessible(true);
-                    declaredField.set("", "");
-                }
-            }
+//            for (Field declaredField : aClass.getDeclaredFields()) {
+//                if (declaredField.getName().equals("PATH")){
+//                    declaredField.setAccessible(true);
+//                    declaredField.set("", "");
+//                }
+//            }
         } catch (Exception e) {
             logger.error("插件类型：{java}\t插件名：["+pluginsName+"]-> 注入PluginsFile失败！",e);
         }
@@ -82,19 +80,27 @@ public class InvokeObject {
     }
 
     /**
-     * 通过注解执行方法
+     * 通过注解执行方法   issue：执行方法时，会根据方法名称进行排序，然后依次执行，不可靠（建议使用注解区分排序）
      * @param annotationClass
      * @param invokeParams
      * @param cronFlag
      * @param <T>
      */
     public static  <T extends Annotation> void invokeByAnnotation(String pluginsName,Class<T> annotationClass,Map<Class, Object> invokeParams,Boolean cronFlag){
-        List<Object> params = new ArrayList<>();
-        javaScriptCompile.getClassAClazzList().stream().forEach(nObject -> {
+        javaScriptCompile.getClassAClazzList().stream().filter(nObject -> null != nObject.getRainbowPlugins().priority()).sorted(Comparator.comparing(nObject -> nObject.getRainbowPlugins().priority().value()))
+            .forEach(nObject -> {
             if (!nObject.getPluginsName().equals(pluginsName)) return;
-            nObject.getObjList().forEach(obj -> Arrays.stream(obj.getClass().getMethods())//.filter(method -> method.getReturnType().getName().equals("void"))
-                    .forEach(method -> {
-                        if (null != method.getAnnotation(annotationClass)) {
+            nObject.getObjList().stream().forEach(obj -> Arrays.stream(obj.getClass().getMethods())
+                    .filter(method -> null != method.getAnnotation(annotationClass))//.filter(method -> method.getReturnType().getName().equals("void"))
+                    .sorted(Comparator.comparing(method -> {
+                        RainbowPlugins.Priority priority = method.getAnnotation(RainbowPlugins.Priority.class);
+                        if (null != priority){
+                            return priority.value();
+                        }else {
+                            return 9999;
+                        }
+                    })).forEach(method -> {
+                            List<Object> params = new ArrayList<>();
                             invokeParams.put(RainbowPlugins.class, nObject.getRainbowPlugins());
                             invokeParams.put(PluginsFile.class,setPluginsFile(pluginsName));
                             InvokeObject.injectionDepend(pluginsName,nObject,invokeParams);
@@ -109,9 +115,39 @@ public class InvokeObject {
                             } else {
                                 execMethod(pluginsName, method, obj, params);
                             }
-                        }
                     }));
         });
+    }
+
+
+    public static  <T extends Annotation> void invokeByAnnotation(NObject nObject,String pluginsName,Class<T> annotationClass,Map<Class, Object> invokeParams,Boolean cronFlag){
+                    if (!nObject.getPluginsName().equals(pluginsName)) return;
+                    nObject.getObjList().stream().forEach(obj -> Arrays.stream(obj.getClass().getMethods())
+                            .filter(method -> null != method.getAnnotation(annotationClass))//.filter(method -> method.getReturnType().getName().equals("void"))
+                            .sorted(Comparator.comparing(method -> {
+                                RainbowPlugins.Priority priority = method.getAnnotation(RainbowPlugins.Priority.class);
+                                if (null != priority){
+                                    return priority.value();
+                                }else {
+                                    return 9999;
+                                }
+                            })).forEach(method -> {
+                                List<Object> params = new ArrayList<>();
+                                invokeParams.put(RainbowPlugins.class, nObject.getRainbowPlugins());
+                                invokeParams.put(PluginsFile.class,setPluginsFile(pluginsName));
+                                InvokeObject.injectionDepend(pluginsName,nObject,invokeParams);
+                                params.addAll(invokeParamTList(method, invokeParams));
+                                if (cronFlag) {
+                                    Cron cron = method.getAnnotation(Cron.class);
+                                    try {
+                                        QuartzUtil.getInstance().addJob(pluginsName + "-" + cron.jobName(), cron.description(), () -> execMethod(pluginsName, method, obj, params), cron.schedulingPattern());
+                                    } catch (QuartzException e) {
+                                        logger.error("插件类型：{java}\t插件名：[" + pluginsName + "]-> 定时任务[" + pluginsName + "-" + cron.jobName() + "]失败！", e);
+                                    }
+                                } else {
+                                    execMethod(pluginsName, method, obj, params);
+                                }
+                            }));
     }
 
     /**
@@ -124,19 +160,35 @@ public class InvokeObject {
         invokeByAnnotation(pluginsName,annotationClass,invokeParams,false);
     }
 
+//    public static  <T extends Annotation> void invokeAllByAnnotation(Class<T> annotationClass,Map<Class, Object> invokeParams){
+//        //javaScriptCompile.getPluginsRunList().forEach(pluginsName -> invokeByAnnotation(pluginsName,annotationClass,invokeParams,false));
+//        javaScriptCompile.getPluginsRunList().stream()
+//                .filter(pluginsName ->javaScriptCompile.getClassAClazzList().stream().filter(nObject -> nObject.getPluginsName().equals(pluginsName)).count() == 1)
+//                .forEach(pluginsName -> ThreadUtil.getInstance().executorService.execute(()->invokeByAnnotation(pluginsName,annotationClass,invokeParams,false)));
+//    }
+
     public static  <T extends Annotation> void invokeAllByAnnotation(Class<T> annotationClass,Map<Class, Object> invokeParams){
-        javaScriptCompile.getPluginsRunList().forEach(pluginsName -> invokeByAnnotation(pluginsName,annotationClass,invokeParams,false));
-        //javaScriptCompile.getPluginsRunList().forEach(pluginsName -> ThreadUtil.getInstance().executorService.execute(()->invokeByAnnotation(pluginsName,annotationClass,invokeParams,false)));
+        //javaScriptCompile.getPluginsRunList().forEach(pluginsName -> invokeByAnnotation(pluginsName,annotationClass,invokeParams,false));
+        javaScriptCompile.getClassAClazzList().stream().filter(nObject -> null != nObject.getRainbowPlugins().priority()).sorted(Comparator.comparing(nObject -> nObject.getRainbowPlugins().priority().value()))
+                .forEach(nObject -> {
+            javaScriptCompile.getPluginsRunList().forEach(pluginsName ->{
+                if (nObject.getPluginsName().equals(pluginsName)){
+                    ThreadUtil.getInstance().executorService.execute(()->invokeByAnnotation(nObject,pluginsName,annotationClass,invokeParams,false));
+                }
+            });
+        });
     }
 
     public static  <T extends Annotation> void invokeAllByAnnotation(Class<T> annotationClass,Map<Class, Object> invokeParams,boolean cronFlag){
-        javaScriptCompile.getPluginsRunList().forEach(pluginsName ->invokeByAnnotation(pluginsName,annotationClass,invokeParams,cronFlag));
-        //javaScriptCompile.getPluginsRunList().forEach(pluginsName ->ThreadUtil.getInstance().executorService.execute(()->invokeByAnnotation(pluginsName,annotationClass,invokeParams,cronFlag)));
+        //javaScriptCompile.getPluginsRunList().forEach(pluginsName ->invokeByAnnotation(pluginsName,annotationClass,invokeParams,cronFlag));
+        javaScriptCompile.getPluginsRunList().stream()
+                .filter(pluginsName ->javaScriptCompile.getClassAClazzList().stream().filter(nObject -> nObject.getPluginsName().equals(pluginsName)).count() == 1)
+                .forEach(pluginsName ->ThreadUtil.getInstance().executorService.execute(()->invokeByAnnotation(pluginsName,annotationClass,invokeParams,cronFlag)));
     }
 
     public static <T> void invokeByMethodName(String pluginsName, String methodName, Class<T> interfaceClass,Map<Class,Object> invokeParams){
-        List<Object> params = new ArrayList<>();
-        javaScriptCompile.getClassAClazzList().stream().forEach(nObject -> {
+        javaScriptCompile.getClassAClazzList().stream().filter(nObject -> null != nObject.getRainbowPlugins().priority()).sorted(Comparator.comparing(nObject -> nObject.getRainbowPlugins().priority().value()))
+            .forEach(nObject -> {
             if (!nObject.getPluginsName().equals(pluginsName)) return;
             nObject.getObjList().stream().filter(clazz1 -> {
                 try {
@@ -145,6 +197,7 @@ public class InvokeObject {
                     return false;
                 }
             }).forEach(obj -> Arrays.stream(obj.getClass().getMethods()).filter(method -> method.getName().equals(methodName)).forEach(method -> {
+                List<Object> params = new ArrayList<>();
                 invokeParams.put(RainbowPlugins.class, nObject.getRainbowPlugins());
                 invokeParams.put(PluginsFile.class,setPluginsFile(pluginsName));
                 InvokeObject.injectionDepend(pluginsName,nObject,invokeParams);
@@ -155,8 +208,10 @@ public class InvokeObject {
     }
 
     public static  <T> void invokeAllByMethodName(String methodName,Class<T> interfaceClass,Map<Class, Object> invokeParams){
-        javaScriptCompile.getPluginsRunList().stream().forEach(pluginsName -> invokeByMethodName(pluginsName,methodName,interfaceClass,invokeParams));
-        //javaScriptCompile.getPluginsRunList().forEach(pluginsName -> ThreadUtil.getInstance().executorService.execute(() ->invokeByMethodName(pluginsName,methodName,interfaceClass,invokeParams)));
+        //javaScriptCompile.getPluginsRunList().stream().forEach(pluginsName -> invokeByMethodName(pluginsName,methodName,interfaceClass,invokeParams));
+        javaScriptCompile.getPluginsRunList().stream()
+                .filter(pluginsName ->javaScriptCompile.getClassAClazzList().stream().filter(nObject -> nObject.getPluginsName().equals(pluginsName)).count() == 1)
+                .forEach(pluginsName -> ThreadUtil.getInstance().executorService.execute(() ->invokeByMethodName(pluginsName,methodName,interfaceClass,invokeParams)));
     }
 
     /**
