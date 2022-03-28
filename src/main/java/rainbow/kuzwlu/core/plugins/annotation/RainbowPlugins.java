@@ -1,5 +1,7 @@
 package rainbow.kuzwlu.core.plugins.annotation;
 
+import love.forte.simbot.annotation.Listens;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,9 +19,15 @@ public @interface RainbowPlugins {
 
     String version();
 
-    developers[] developers();
+    Priority priority();
 
-    @interface developers{
+    Developers[] developers();
+
+    @interface Priority{
+        int value() default Listens.DEFAULT_PRIORITY;
+    }
+
+    @interface Developers{
         String name();
 
         String roles();
