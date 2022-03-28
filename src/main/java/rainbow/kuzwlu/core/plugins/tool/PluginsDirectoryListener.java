@@ -1,4 +1,4 @@
-package rainbow.kuzwlu.core.plugins.utils;
+package rainbow.kuzwlu.core.plugins.tool;
 
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import rainbow.kuzwlu.core.plugins.compiler.interfaces.ScriptCompile;
