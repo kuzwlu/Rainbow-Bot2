@@ -22,3 +22,7 @@
     ThreadPool--线程池，根据电脑性能自动创建
     
 由于编译功能模块化，以后将把编译的功能提取出来，单独做成一个依赖包，暂时只支持java，由于设计好了接口，适配编译其他语言有很好的拓展性
+
+### **特别鸣谢**
+![jetbrains](https://s2.loli.net/2022/03/30/AyPJ6r5EI8OGXgY.png)
+#### 感谢 [jetbrains](https://www.jetbrains.com/) 为团队提供的免费授权，也希望大家能够支持jetbrains及其产品，支持正版。
