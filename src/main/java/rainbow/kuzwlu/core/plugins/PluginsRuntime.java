@@ -11,7 +11,7 @@ import rainbow.kuzwlu.config.UserConfig;
 import rainbow.kuzwlu.core.plugins.compiler.interfaces.ScriptCompile;
 import rainbow.kuzwlu.core.plugins.compiler.java.JavaScriptCompile;
 import rainbow.kuzwlu.core.plugins.enums.PluginsType;
-import rainbow.kuzwlu.core.plugins.utils.PluginsDirectoryListener;
+import rainbow.kuzwlu.core.plugins.tool.PluginsDirectoryListener;
 import rainbow.kuzwlu.utils.PathUtil;
 
 import java.io.File;

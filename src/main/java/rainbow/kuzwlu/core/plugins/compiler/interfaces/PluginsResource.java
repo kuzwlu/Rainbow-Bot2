@@ -7,19 +7,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public interface PluginsResource {
 
-    List<String> pluginsTotalList = new ArrayList<>();
+    List<String> pluginsTotalList = new CopyOnWriteArrayList<>();
 
-    List<String> pluginsRunList = new ArrayList<>();
+    List<String> pluginsRunList = new CopyOnWriteArrayList<>();
 
     default List<String> getPluginsTotalList(){
-        return pluginsTotalList;
+        return pluginsTotalList.stream().distinct().collect(Collectors.toList());
     }
 
     default List<String> getPluginsRunList(){
-        return pluginsRunList;
+        return pluginsRunList.stream().distinct().collect(Collectors.toList());
     }
 
     /**
