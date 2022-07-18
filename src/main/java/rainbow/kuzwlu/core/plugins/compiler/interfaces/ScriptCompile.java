@@ -12,11 +12,13 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import rainbow.kuzwlu.core.plugins.annotation.RainbowPlugins;
 import rainbow.kuzwlu.core.plugins.annotation.impl.RainbowPluginsImpl;
+import rainbow.kuzwlu.exception.CompileException;
 import rainbow.kuzwlu.pluginsBot.interfaces.ListenPlugins;
 import rainbow.kuzwlu.utils.FileTXTUtil;
 import rainbow.kuzwlu.utils.PathUtil;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,15 +45,11 @@ public interface ScriptCompile extends PluginsResource {
     @Override
     default RainbowPlugins getPluginsDevelopers(List<Object> objectLists){
         AtomicReference<RainbowPlugins> rainbowPlugins = new AtomicReference<>();
-        objectLists.stream().filter(obj -> {
-            try{
-                return obj.getClass().getGenericInterfaces()[0].equals(ListenPlugins.class) && null != obj.getClass().getAnnotation(RainbowPlugins.class);
-            }catch (Exception e){
-                return false;
+        for (Object obj : objectLists) {
+            if (obj.getClass().getGenericInterfaces()[0].equals(ListenPlugins.class) && null != obj.getClass().getAnnotation(RainbowPlugins.class)) {
+                rainbowPlugins.set(obj.getClass().getAnnotation(RainbowPlugins.class));
             }
-        }).forEach(o -> {
-            rainbowPlugins.set(o.getClass().getAnnotation(RainbowPlugins.class));
-        });
+        }
         if (rainbowPlugins.get() == null) return new RainbowPluginsImpl();
         return rainbowPlugins.get();
     }

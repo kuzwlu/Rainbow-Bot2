@@ -1,11 +1,13 @@
 package rainbow.kuzwlu.config;
 
+import catcode.CatCodeUtil;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import rainbow.kuzwlu.RainbowApplication;
 import rainbow.kuzwlu.config.enums.UserConfigEnum;
+import rainbow.kuzwlu.pluginsBot.BotTools;
 import rainbow.kuzwlu.core.plugins.PluginsRuntime;
 import rainbow.kuzwlu.utils.*;
 import rainbow.kuzwlu.utils.config.UtilsUserConfig;
@@ -53,6 +55,12 @@ public class InitRunner implements ApplicationRunner {
         //初始化插件中心
         globalVariableContext.setPluginsRuntime(PluginsRuntime.getRuntime());
 
+        BotTools botTools = BotTools.builder().catCodeUtil(CatCodeUtil.getInstance())
+                .userConfig(UserConfig.getInstance())
+                .httpUtil(GlobalVariableContext.getInstance().getHttpUtil())
+                .quartzUtil(GlobalVariableContext.getInstance().getQuartzUtil())
+                .threadUtil(GlobalVariableContext.getInstance().getThreadPool()).build();
+        globalVariableContext.setBotTools(botTools);
     }
 
 }

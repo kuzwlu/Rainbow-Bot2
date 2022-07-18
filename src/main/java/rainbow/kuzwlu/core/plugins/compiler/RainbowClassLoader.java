@@ -313,17 +313,19 @@ public class RainbowClassLoader {
 
     public Map<String, byte[]> compile(Map<String,String> javaInfo,File libPath)  {
         StringBuffer lib = new StringBuffer();
-        if (libPath != null || libPath.exists()){
-            try {
-                Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
-                addURL.setAccessible(true);
-                for (File file : libPath.listFiles()) {
-                    if (PathUtil.isHiddenFile(file)) continue;
-                    lib.append(file.getPath()).append(PathUtil.isWindows? ";" :":");
-                    addURL.invoke(systemClassLoader, new Object[] {file.toURI().toURL() });
+        if (libPath != null ){
+            if (libPath.exists()) {
+                try {
+                    Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
+                    addURL.setAccessible(true);
+                    for (File file : libPath.listFiles()) {
+                        if (PathUtil.isHiddenFile(file)) continue;
+                        lib.append(file.getPath()).append(PathUtil.isWindows ? ";" : ":");
+                        addURL.invoke(systemClassLoader, new Object[]{file.toURI().toURL()});
+                    }
+                } catch (NoSuchMethodException | MalformedURLException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
                 }
-            } catch (NoSuchMethodException | MalformedURLException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
             }
         }
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

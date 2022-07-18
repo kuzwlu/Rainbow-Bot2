@@ -1,6 +1,7 @@
 package rainbow.kuzwlu.config;
 
 import org.springframework.stereotype.Component;
+import rainbow.kuzwlu.pluginsBot.BotTools;
 import rainbow.kuzwlu.core.plugins.PluginsRuntime;
 import rainbow.kuzwlu.utils.*;
 import rainbow.kuzwlu.utils.quartz.QuartzUtil;
@@ -29,6 +30,8 @@ public class GlobalVariableContext {
     private QuartzUtil quartzUtil;
 
     private PluginsRuntime pluginsRuntime;
+
+    private BotTools botTools;
 
     public HttpUtil getHttpUtil() {
         return httpUtil;
@@ -84,5 +87,13 @@ public class GlobalVariableContext {
 
     protected void setPluginsRuntime(PluginsRuntime pluginsRuntime) {
         this.pluginsRuntime = pluginsRuntime;
+    }
+
+    public BotTools getBotTools() {
+        return botTools;
+    }
+
+    protected void setBotTools(BotTools botTools) {
+        this.botTools = botTools;
     }
 }

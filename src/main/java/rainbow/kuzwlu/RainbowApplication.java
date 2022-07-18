@@ -1,25 +1,20 @@
 package rainbow.kuzwlu;
 
-import catcode.CatCodeUtil;
 import love.forte.simbot.annotation.SimbotApplication;
 import love.forte.simbot.annotation.SimbotResource;
-import love.forte.simbot.bot.BotManager;
 import love.forte.simbot.core.SimbotApp;
 import love.forte.simbot.core.SimbotContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.ComponentScan;
-import rainbow.kuzwlu.config.UserConfig;
+import rainbow.kuzwlu.config.GlobalVariableContext;
+import rainbow.kuzwlu.pluginsBot.BotTools;
 import rainbow.kuzwlu.core.plugins.annotation.Cron;
-import rainbow.kuzwlu.core.plugins.compiler.interfaces.ScriptCompile;
 import rainbow.kuzwlu.core.plugins.compiler.java.InvokeObject;
-import rainbow.kuzwlu.core.plugins.PluginsRuntime;
 import rainbow.kuzwlu.pluginsBot.RainbowBotManager;
 import rainbow.kuzwlu.pluginsBot.interfaces.ListenPlugins;
-import rainbow.kuzwlu.utils.ThreadUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Author kuzwlu
@@ -38,8 +33,7 @@ public class RainbowApplication {
 
         Map<Class,Object> invokeParams = new HashMap<>();
         invokeParams.put(RainbowBotManager.class, new RainbowBotManager(context.getBotManager()));
-        invokeParams.put(CatCodeUtil.class,CatCodeUtil.getInstance());
-        invokeParams.put(UserConfig.class,UserConfig.getInstance());
+        invokeParams.put(BotTools.class, GlobalVariableContext.getInstance().getBotTools());
 
         InvokeObject.invokeAllByMethodName("init", ListenPlugins.class, invokeParams);
         //执行定时任务

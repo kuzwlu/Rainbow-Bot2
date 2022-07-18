@@ -1,10 +1,8 @@
 package rainbow.kuzwlu.pluginsBot;
 
-import lombok.SneakyThrows;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.sender.MsgSender;
-import love.forte.simbot.bot.BotManager;
 import rainbow.kuzwlu.config.UserConfig;
 import rainbow.kuzwlu.core.plugins.PluginsRuntime;
 import rainbow.kuzwlu.core.plugins.compiler.java.InvokeObject;
@@ -35,7 +33,7 @@ public class Menu {
                 }
             });
         }
-        if (UserConfig.getInstance().getAdmin_list().indexOf(msgGet.getAccountInfo().getAccountCode()) == -1 && !msgGet.getAccountInfo().getAccountCode().equals(sender.GETTER.getBotInfo().getBotCode())){
+        if (!UserConfig.getInstance().getAdmin_list().contains(msgGet.getAccountInfo().getAccountCode()) && !msgGet.getAccountInfo().getAccountCode().equals(sender.GETTER.getBotInfo().getBotCode())){
             if (msg.endsWith("菜单")){
                 javaScriptCompile.getPluginsRunList().forEach(pluginsName ->{
                     if (msg.substring(0,msg.length()-2).equals(pluginsName)){
@@ -47,7 +45,7 @@ public class Menu {
             }
             return;
         }
-        if (msg.equals("菜单")){
+        if (msg.equals("菜单") && UserConfig.getInstance().getAdmin_list().contains(msgGet.getAccountInfo().getAccountCode())){
             sendMsg(msgFlag,msgGet,sender,"菜单如下：\n1、插件列表\n2、加载插件[插件名]\n3、加载所有插件\n4、卸载插件[插件名]\n5、卸载所有插件");
             return;
         }
